@@ -16,20 +16,10 @@ public class TestApiController {
 
     private final ApiMapper mappers;
 
-//    @Autowired
-//    private DiscoveryClient discoveryClient;
-
     @GetMapping("/test")
     public TestDTO assignUserPlan(){
         return mappers.map("Success");
     }
-
-//    public Optional<URI> serviceUrl() {
-//        return discoveryClient.getInstances("MapperDemo")
-//                .stream()
-//                .findFirst()
-//                .map(si -> si.getUri());
-//    }
 
     @GetMapping("/ping")
     public String ping() {
