@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.4.4</version>
+		<version>2.3.4.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example.mapper</groupId>
@@ -14,7 +14,9 @@
 	<name>MapperDemo</name>
 	<description>Demo project for Mapper in Spring Boot</description>
 	<properties>
-		<java.version>16</java.version>
+		<java.version>15</java.version>
+		<swagger-ui.version>3.30.2</swagger-ui.version>
+		<org.mapstruct.version>1.4.1.Final</org.mapstruct.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -27,6 +29,27 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>2.0.1.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>1.5.23</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${org.mapstruct.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -37,18 +60,98 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
 				<configuration>
-					<excludes>
-						<exclude>
+					<release>15</release>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${org.mapstruct.version}</version>
+						</path>
+						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.build.directory}/swagger-ui-download"/>
+								<get src="https://github.com/swagger-api/swagger-ui/archive/v${swagger-ui.version}.zip"
+									 dest="${project.build.directory}/swagger-ui-download"/>
+								<unzip src="${project.build.directory}/swagger-ui-download/v${swagger-ui.version}.zip"
+									   dest="${project.build.directory}/swagger-ui-download">
+									<patternset>
+										<include name="*/dist/*"/>
+										<exclude name="*/dist/index.html"/>
+									</patternset>
+								</unzip>
+								<move file="${project.build.directory}/swagger-ui-download/swagger-ui-${swagger-ui.version}/dist"
+									  tofile="${project.build.directory}/generated-resources/public/swagger-ui"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>5.1.0</version>
+				<configuration>
+					<output>${project.build.directory}/generated-sources</output>
+					<generatorName>spring</generatorName>
+					<library>spring-boot</library>
+					<verbose>true</verbose>
+<!--					<skipValidateSpec>false</skipValidateSpec>-->
+					<generateApiDocumentation>false</generateApiDocumentation>
+					<generateModelDocumentation>false</generateModelDocumentation>
+					<generateApis>false</generateApis>
+					<generateApiTests>false</generateApiTests>
+					<generateModels>true</generateModels>
+					<generateModelTests>false</generateModelTests>
+					<generateSupportingFiles>false</generateSupportingFiles>
+					<configHelp>false</configHelp>
+					<configOptions>
+						<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
+						<hideGenerationTimestamp>true</hideGenerationTimestamp>
+<!--						<dateLibrary>java8-offsetdatetime</dateLibrary>-->
+						<serializableModel>true</serializableModel>
+						<serializationLibrary>jackson</serializationLibrary>
+							<dateLibrary>java8</dateLibrary>
+							<java8>true</java8>
+					</configOptions>
+				</configuration>
+				<executions>
+					<execution>
+						<id>schema</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>
+								${project.basedir}/src/main/resources/public/schema.yaml
+							</inputSpec>
+							<modelPackage>com.example.mapper.MapperDemo.controllers</modelPackage>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
+
 	</build>
 
 </project>
