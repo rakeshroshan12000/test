@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: MapperDemo
+  profiles:
+    active: dev
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${random.value}
+        healthCheckPath: /ping
+        healthCheckInterval: 20s
+      config:
+        enabled: true
+        prefix: config
+        format: YAML
+        default-context: MapperDemo
+        profile-separator: '-'
+        data-key: MapperDemoConfig
+        watch:
+          # Whether to enable automatic refresh? The default value is true
+          enabled: true
+          # Refresh rate in milliseconds, default 1000
+          delay: 1000
+          # Service discovery related configuration
+          discovery:
+            register: true                                # Need to register
+            instance-id: ${spring.application.name}-01    # Registration instance id (must be unique)
+            service-name: ${spring.application.name}      # Service name
+            port: ${server.port}                          # Service port
+            prefer-ip-address: true                       # Use ip address to register
+            ip-address: ${spring.cloud.client.ip-address} # Service request ip
